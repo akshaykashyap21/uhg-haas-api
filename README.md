@@ -1,4 +1,4 @@
-# Azure Express API (lean starter)
+# Azure Express API {Microservices Architecture}
 
 Gateway + Auth microservice on Azure SQL. TypeORM, JWT, Joi — nothing else pretended to be needed.
 
