@@ -1,0 +1,38 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: uhg-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Your_strong_Password123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Your_strong_Password123' -C -Q 'SELECT 1' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Optional: uncomment to run Node services in Docker too.
+  # Prefer `npm run dev:all` for day-to-day local work.
+  # auth-service:
+  #   build:
+  #     context: .
+  #     args: { SERVICE: auth-service }
+  #   ports: ["3001:3001"]
+  #   env_file: ./services/auth-service/.env
+  #   environment:
+  #     AZURE_SQL_HOST: sqlserver
+  #   depends_on:
+  #     sqlserver:
+  #       condition: service_healthy
+
+volumes:
+  sql_data:

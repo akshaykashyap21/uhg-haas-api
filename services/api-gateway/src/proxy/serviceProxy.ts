@@ -1,0 +1,46 @@
+import { RequestHandler } from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import { Logger } from 'winston';
+
+export function createServiceProxy(
+  target: string,
+  upstreamBasePath: string,
+  logger: Logger,
+): RequestHandler {
+  return createProxyMiddleware({
+    target,
+    changeOrigin: true,
+    pathRewrite: (path) => `${upstreamBasePath}${path}`,
+    proxyTimeout: 30000,
+    timeout: 30000,
+    on: {
+      proxyReq: (proxyReq, req) => {
+        const correlationId = (req as { correlationId?: string }).correlationId;
+        if (correlationId) {
+          proxyReq.setHeader('x-correlation-id', correlationId);
+        }
+        if (req.headers.authorization) {
+          proxyReq.setHeader('authorization', req.headers.authorization);
+        }
+      },
+      error: (err, req, res) => {
+        logger.error('Upstream proxy error', {
+          target,
+          path: (req as { originalUrl?: string }).originalUrl,
+          error: err.message,
+        });
+        const response = res as import('http').ServerResponse;
+        if (!response.headersSent) {
+          response.writeHead(502, { 'Content-Type': 'application/json' });
+          response.end(
+            JSON.stringify({
+              success: false,
+              message: 'Upstream service unavailable',
+              error: { code: 'BAD_GATEWAY' },
+            }),
+          );
+        }
+      },
+    },
+  });
+}

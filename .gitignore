@@ -1,0 +1,27 @@
+node_modules/
+dist/
+build/
+coverage/
+
+# Env files (secrets — not committed)
+.env
+.env.staging
+.env.production
+
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.tsbuildinfo
+.nyc_output/
+tmp/
+temp/
+.azure/
+*.pem
+*.key
+secrets/
+.docker/

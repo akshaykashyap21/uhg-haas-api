@@ -1,0 +1,41 @@
+{
+  "name": "azure-express-microservices",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lean Azure-native Express.js API: gateway + auth service, Azure SQL, TypeORM, JWT, Joi",
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "build:shared": "npm run build -w @app/shared",
+    "dev:auth": "cross-env APP_ENV=development npm run dev -w @app/auth-service",
+    "dev:gateway": "cross-env APP_ENV=development npm run dev -w @app/api-gateway",
+    "dev:all": "cross-env APP_ENV=development concurrently -n gateway,auth -c blue,green \"npm:dev:gateway\" \"npm:dev:auth\"",
+    "start:auth": "cross-env APP_ENV=development npm run start -w @app/auth-service",
+    "start:gateway": "cross-env APP_ENV=development npm run start -w @app/api-gateway",
+    "start:auth:staging": "cross-env APP_ENV=staging npm run start -w @app/auth-service",
+    "start:gateway:staging": "cross-env APP_ENV=staging npm run start -w @app/api-gateway",
+    "start:auth:prod": "cross-env APP_ENV=production npm run start -w @app/auth-service",
+    "start:gateway:prod": "cross-env APP_ENV=production npm run start -w @app/api-gateway",
+    "lint": "eslint \"packages/**/*.{ts,js}\" \"services/**/*.{ts,js}\"",
+    "docker:sql": "docker compose up -d sqlserver",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.3"
+  }
+}
