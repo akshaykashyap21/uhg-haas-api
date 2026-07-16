@@ -12,19 +12,37 @@ router.get('/health', (_req, res) => {
 });
 
 router.get('/ready', async (_req, res) => {
-  let auth = 'down';
+  const authUrl = `${env.AUTH_SERVICE_URL}/ready`;
+  let authStatus: 'up' | 'not_ready' | 'unreachable' = 'unreachable';
+  let authDetail: Record<string, unknown> | string | undefined;
+
   try {
-    const authRes = await fetch(`${env.AUTH_SERVICE_URL}/ready`, {
+    const authRes = await fetch(authUrl, {
       signal: AbortSignal.timeout(3000),
     });
-    auth = authRes.ok ? 'up' : 'down';
-  } catch {
-    auth = 'down';
+    const body = (await authRes.json().catch(() => null)) as Record<string, unknown> | null;
+
+    if (authRes.ok) {
+      authStatus = 'up';
+      authDetail = body ?? undefined;
+    } else {
+      // Process is up, but its own readiness failed (almost always database).
+      authStatus = 'not_ready';
+      authDetail = body ?? { httpStatus: authRes.status };
+    }
+  } catch (err) {
+    authStatus = 'unreachable';
+    authDetail = err instanceof Error ? err.message : 'fetch failed';
   }
 
-  res.status(auth === 'up' ? 200 : 503).json({
-    status: auth === 'up' ? 'ready' : 'not_ready',
-    checks: { auth },
+  const ready = authStatus === 'up';
+  res.status(ready ? 200 : 503).json({
+    status: ready ? 'ready' : 'not_ready',
+    checks: {
+      auth: authStatus,
+      authUpstream: env.AUTH_SERVICE_URL,
+    },
+    authDetail,
     service: env.SERVICE_NAME,
   });
 });

@@ -1,6 +1,7 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, createRateLimiter, JwtService, validate } from '@uhg-haas/shared';
 import { env } from '../config/env';
+import { logger } from '../config/logger';
 import { AuthController } from '../controllers/AuthController';
 import {
   changePasswordSchema,
@@ -20,6 +21,23 @@ const jwtService = new JwtService({
 });
 
 const authLimiter = createRateLimiter(15 * 60 * 1000, 20);
+
+/** Logs as soon as a request hits /api/v1/auth/* (before validation). */
+function traceAuthRoute(req: Request, _res: Response, next: NextFunction): void {
+  logger.info('Auth API route reached', {
+    stage: 'route',
+    correlationId: req.correlationId,
+    method: req.method,
+    originalUrl: req.originalUrl,
+    mountPath: req.baseUrl,
+    routePath: req.path,
+    hasBody: Boolean(req.body && Object.keys(req.body).length),
+    bodyKeys: req.body && typeof req.body === 'object' ? Object.keys(req.body) : [],
+  });
+  next();
+}
+
+router.use(traceAuthRoute);
 
 router.post('/register', authLimiter, validate(registerSchema), controller.register);
 router.post('/login', authLimiter, validate(loginSchema), controller.login);
