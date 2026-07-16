@@ -48,6 +48,16 @@ No Docker required. Uses your Windows login to connect to local SQL Server.
    ```
    For Express: `AZURE_SQL_HOST=localhost\\SQLEXPRESS`
 
+   Local Windows auth uses **`msnodesqlv8`** (not tedious). Needs:
+   - Node 20/22/24 (prebuilds)
+   - **ODBC Driver 17 for SQL Server**
+   - `msnodesqlv8` installed (`npm install` in the monorepo)
+
+   Create the DB once:
+   ```bash
+   npm run db:create:local
+   ```
+
 ### Environments
 
 Each service loads env from its own folder:

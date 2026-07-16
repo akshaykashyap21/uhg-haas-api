@@ -30,7 +30,8 @@
     "publish:shared": "npm run build:shared && npm publish -w @uhg-haas/shared",
     "lint": "eslint \"packages/**/*.{ts,js}\" \"services/**/*.{ts,js}\"",
     "docker:sql": "docker compose up -d sqlserver",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "db:create:local": "node scripts/create-local-db.js"
   },
   "engines": {
     "node": ">=20.0.0",
