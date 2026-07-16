@@ -193,6 +193,33 @@ export const openApiDocument = {
         },
       },
     },
+    '/api/v1/auth/__ping': {
+      get: {
+        tags: ['Auth'],
+        summary: 'Auth service ping',
+        description:
+          'Proxied to auth-service. Use this to verify gateway → auth routing (no auth required).',
+        responses: {
+          '200': {
+            description: 'Auth service reachable',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    ok: { type: 'boolean', example: true },
+                    service: { type: 'string', example: 'auth-service' },
+                    path: { type: 'string', example: '/api/v1/auth/__ping' },
+                  },
+                },
+              },
+            },
+          },
+          '404': { description: 'Auth route not found / upstream mismatch' },
+          '502': { description: 'Auth service unavailable' },
+        },
+      },
+    },
     '/api/v1/auth/register': {
       post: {
         tags: ['Auth'],

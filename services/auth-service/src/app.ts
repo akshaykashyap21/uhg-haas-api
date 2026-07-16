@@ -43,6 +43,17 @@ export function createApp() {
   app.use(createRateLimiter(env.RATE_LIMIT_WINDOW_MS, env.RATE_LIMIT_MAX));
 
   app.use(healthRoutes);
+
+  /** Root ping — http://127.0.0.1:3001/ping */
+  app.get('/ping', (_req, res) => {
+    res.status(200).json({
+      ok: true,
+      service: env.SERVICE_NAME,
+      authBase: '/api/v1/auth',
+      tips: ['GET /health', 'GET /ping', 'GET /api/v1/auth/__ping', 'POST /api/v1/auth/register'],
+    });
+  });
+
   app.use('/api/v1/auth', authRoutes);
 
   app.use(notFoundHandler);
