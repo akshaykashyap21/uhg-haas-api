@@ -39,7 +39,6 @@ function traceAuthRoute(req: Request, _res: Response, next: NextFunction): void 
 
 router.use(traceAuthRoute);
 
-/** Direct ping — call http://127.0.0.1:3001/api/v1/auth/__ping (bypass gateway). */
 router.get('/__ping', (_req, res) => {
   res.status(200).json({ ok: true, service: 'auth-service', path: '/api/v1/auth/__ping' });
 });
