@@ -22,6 +22,7 @@ export interface SqlEnv {
   AZURE_SQL_HOST: string;
   AZURE_SQL_PORT: number;
   AZURE_SQL_DATABASE: string;
+  AZURE_SQL_WINDOWS_AUTH: boolean;
   AZURE_SQL_USER: string;
   AZURE_SQL_PASSWORD: string;
   AZURE_SQL_ENCRYPT: boolean;
@@ -58,8 +59,17 @@ const sqlSchema = Joi.object({
   AZURE_SQL_HOST: Joi.string().required(),
   AZURE_SQL_PORT: Joi.number().default(1433),
   AZURE_SQL_DATABASE: Joi.string().required(),
-  AZURE_SQL_USER: Joi.string().required(),
-  AZURE_SQL_PASSWORD: Joi.string().required(),
+  AZURE_SQL_WINDOWS_AUTH: Joi.boolean().default(false),
+  AZURE_SQL_USER: Joi.when('AZURE_SQL_WINDOWS_AUTH', {
+    is: true,
+    then: Joi.string().allow('').optional(),
+    otherwise: Joi.string().required(),
+  }),
+  AZURE_SQL_PASSWORD: Joi.when('AZURE_SQL_WINDOWS_AUTH', {
+    is: true,
+    then: Joi.string().allow('').optional(),
+    otherwise: Joi.string().required(),
+  }),
   AZURE_SQL_ENCRYPT: Joi.boolean().default(true),
   AZURE_SQL_TRUST_SERVER_CERTIFICATE: Joi.boolean().default(false),
   TYPEORM_SYNC: Joi.boolean().default(false),

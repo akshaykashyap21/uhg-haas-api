@@ -22,16 +22,29 @@ Add a second service when you have a **real** bounded context (billing, claims, 
 ```bash
 npm install
 
-# Ensure env files exist (gitignored):
-#   services/auth-service/.env
-#   services/api-gateway/.env
-
-npm run docker:sql
-# Create DB once: CREATE DATABASE uhg;
+# Env files in env/ folder (see env/auth-service.development.env)
 
 npm run build:shared
-npm run dev:all          # APP_ENV=development → .env
+npm run dev:all
 ```
+
+### Local SQL Server (Windows Authentication)
+
+No Docker required. Uses your Windows login to connect to local SQL Server.
+
+1. Install **SQL Server Express** or **Developer**.
+2. Create database in SSMS:
+   ```sql
+   CREATE DATABASE uhg;
+   ```
+3. Configure `env/auth-service.development.env`:
+   ```env
+   AZURE_SQL_HOST=localhost
+   AZURE_SQL_DATABASE=uhg
+   AZURE_SQL_WINDOWS_AUTH=true
+   AZURE_SQL_TRUST_SERVER_CERTIFICATE=true
+   ```
+   For Express: `AZURE_SQL_HOST=localhost\\SQLEXPRESS`
 
 ### Environments
 

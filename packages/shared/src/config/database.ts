@@ -5,21 +5,29 @@ export function buildDataSourceOptions(
   env: SqlEnv & { NODE_ENV: string },
   entities: DataSourceOptions['entities'],
 ): DataSourceOptions {
+  const sqlOptions = {
+    encrypt: env.AZURE_SQL_ENCRYPT,
+    trustServerCertificate: env.AZURE_SQL_TRUST_SERVER_CERTIFICATE,
+    enableArithAbort: true,
+    ...(env.AZURE_SQL_WINDOWS_AUTH ? { trustedConnection: true } : {}),
+  };
+
+  const authFields = env.AZURE_SQL_WINDOWS_AUTH
+    ? {}
+    : {
+        username: env.AZURE_SQL_USER,
+        password: env.AZURE_SQL_PASSWORD,
+      };
+
   return {
     type: 'mssql',
     host: env.AZURE_SQL_HOST,
     port: env.AZURE_SQL_PORT,
-    username: env.AZURE_SQL_USER,
-    password: env.AZURE_SQL_PASSWORD,
     database: env.AZURE_SQL_DATABASE,
     synchronize: env.TYPEORM_SYNC && env.NODE_ENV !== 'production',
     logging: env.TYPEORM_LOGGING,
     entities,
-    options: {
-      encrypt: env.AZURE_SQL_ENCRYPT,
-      trustServerCertificate: env.AZURE_SQL_TRUST_SERVER_CERTIFICATE,
-      enableArithAbort: true,
-    },
+    options: sqlOptions,
     extra: {
       connectionTimeout: 30000,
       requestTimeout: 30000,
@@ -29,6 +37,7 @@ export function buildDataSourceOptions(
         idleTimeoutMillis: 30000,
       },
     },
+    ...authFields,
   };
 }
 
