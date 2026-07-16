@@ -8,6 +8,7 @@ import {
   requestLogger,
   securityHeaders,
 } from '@uhg-haas/shared';
+import { env } from './config/env';
 import { logger as authLogger } from './config/logger';
 import authRoutes from './routes/auth.routes';
 import healthRoutes from './routes/health.routes';
