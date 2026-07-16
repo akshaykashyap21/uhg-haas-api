@@ -24,6 +24,21 @@ export function createApp() {
   app.use(corsMiddleware(env.CORS_ORIGIN));
   app.use(express.json({ limit: '1mb' }));
   app.use(correlationIdMiddleware);
+
+  // Visible even if winston is misconfigured — proves the request hit Express
+  app.use((req, _res, next) => {
+    // eslint-disable-next-line no-console
+    console.log(`[auth-trace] ${req.method} ${req.originalUrl} (url=${req.url}) cid=${req.correlationId}`);
+    logger.info('Auth inbound', {
+      stage: 'inbound',
+      correlationId: req.correlationId,
+      method: req.method,
+      originalUrl: req.originalUrl,
+      url: req.url,
+    });
+    next();
+  });
+
   app.use(requestLogger(logger));
   app.use(createRateLimiter(env.RATE_LIMIT_WINDOW_MS, env.RATE_LIMIT_MAX));
 

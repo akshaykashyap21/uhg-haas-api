@@ -3,29 +3,29 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Logger } from 'winston';
 
 /**
- * Proxies gateway routes to an upstream service.
- * Auth and gateway share the same public path (e.g. /api/v1/auth),
- * so we forward `originalUrl` as-is — do not prefix again.
+ * Proxies /api/v1/auth/* to auth-service with the same path.
+ * Uses pathFilter (no Express mount strip) so upstream receives
+ * /api/v1/auth/register — not /register.
  */
 export function createServiceProxy(
   target: string,
-  _upstreamBasePath: string,
+  pathPrefix: string,
   logger: Logger,
 ): RequestHandler {
   return createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathRewrite: (_path, req) => {
-      const original = (req as { originalUrl?: string }).originalUrl ?? _path;
-      return original;
-    },
+    pathFilter: (pathname) =>
+      pathname === pathPrefix || pathname.startsWith(`${pathPrefix}/`),
     proxyTimeout: 30000,
     timeout: 30000,
     on: {
       proxyReq: (proxyReq, req) => {
         const correlationId = (req as { correlationId?: string }).correlationId;
-        const originalUrl = (req as { originalUrl?: string }).originalUrl;
-        const forwardedPath = proxyReq.path;
+        const originalUrl = (req as { originalUrl?: string }).originalUrl ?? req.url;
+
+        // Ensure outbound path is the full public path (query string included).
+        proxyReq.path = originalUrl;
 
         logger.info('Gateway proxy → upstream', {
           stage: 'gateway-proxy',
@@ -33,7 +33,8 @@ export function createServiceProxy(
           method: req.method,
           originalUrl,
           target,
-          forwardedPath,
+          outbound: `${target}${originalUrl}`,
+          proxyReqPath: proxyReq.path,
         });
 
         if (correlationId) {
