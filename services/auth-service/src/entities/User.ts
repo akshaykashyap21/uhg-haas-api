@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserRole } from '@app/shared';
+import { UserRole } from '@uhg-haas/shared';
 import { RefreshToken } from './RefreshToken';
 
 @Entity({ name: 'users' })

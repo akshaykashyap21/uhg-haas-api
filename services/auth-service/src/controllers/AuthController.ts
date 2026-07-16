@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { asyncHandler, sendSuccess } from '@app/shared';
+import { asyncHandler, sendSuccess } from '@uhg-haas/shared';
 import { AuthService } from '../services/AuthService';
 
 export class AuthController {

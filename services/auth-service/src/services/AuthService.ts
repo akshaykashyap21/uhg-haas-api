@@ -10,7 +10,7 @@ import {
   TokenType,
   UnauthorizedError,
   UserRole,
-} from '@app/shared';
+} from '@uhg-haas/shared';
 import { env } from '../config/env';
 import { AppDataSource } from '../config/data-source';
 import { User } from '../entities/User';

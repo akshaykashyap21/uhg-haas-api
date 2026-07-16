@@ -50,6 +50,42 @@ npm run start:gateway:prod
 
 Replace `REPLACE_*` values in staging/production (prefer Key Vault / App Settings for secrets).
 
+## JFrog Artifactory (npm)
+
+Packages use scope **`@uhg-haas`** and SemVer (`1.0.0`). Installs go through **`glb-npm-vir`** on `centraluhg.jfrog.io`.
+
+### Setup
+
+```powershell
+$env:JFROG_NPM_REGISTRY_HOST = "centraluhg.jfrog.io"
+$env:JFROG_NPM_VIRTUAL_REPO = "glb-npm-vir"
+$env:JFROG_NPM_LOCAL_REPO = "glb-npm-loc"   # confirm name with your Artifactory admin
+$env:JFROG_NPM_TOKEN = "<identity-token>"
+
+Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
+Remove-Item package-lock.json -ErrorAction SilentlyContinue
+npm install
+```
+
+### JFrog CoolNPM / DelayNPM (403 on install)
+
+If you see `blocked by jfrog packages curation service` / `Package version is 3 days old`:
+
+- This is **not** an auth failure — UHG policy blocks immature npm versions.
+- Root `package.json` uses **`overrides`** and exact pins (`typeorm@0.3.20`, older `@azure/*`) to stay within policy.
+- If a package is still blocked, pick an older version in [JFrog Curation](https://curationuhg.jfrog.io) and add it to `overrides`.
+
+### Versioning & publish
+
+All workspace packages stay on the **same version** (JFrog expects exact SemVer on internal deps):
+
+```bash
+npm run version:bump:patch   # 1.0.0 → 1.0.1 across root + workspaces
+npm run publish:shared       # publishes @uhg-haas/shared to JFrog npm-local
+```
+
+Docker builds need the same `JFROG_*` build args (see `Dockerfile`).
+
 ## API documentation
 
 Interactive Swagger UI (OpenAPI 3) is served from the gateway:

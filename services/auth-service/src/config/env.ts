@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { loadDotenv, loadServiceEnv, ServiceEnv } from '@app/shared';
+import { loadDotenv, loadServiceEnv, ServiceEnv } from '@uhg-haas/shared';
 
 loadDotenv();
 

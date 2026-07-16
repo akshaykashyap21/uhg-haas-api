@@ -3,10 +3,9 @@ dist/
 build/
 coverage/
 
-# Env files (secrets — not committed)
-.env
-.env.staging
-.env.production
+# Env secrets (keep folder structure, ignore values if needed)
+env/*.env
+env/npm.jfrog.env
 
 *.log
 npm-debug.log*

@@ -1,7 +1,8 @@
 {
-  "name": "@app/api-gateway",
+  "name": "@uhg-haas/api-gateway",
   "version": "1.0.0",
   "private": true,
+  "description": "API gateway for UHG HAAS API",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -9,7 +10,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@app/shared": "1.0.0",
+    "@uhg-haas/shared": "1.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "http-proxy-middleware": "^3.0.0",

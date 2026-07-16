@@ -8,7 +8,7 @@ import {
   notFoundHandler,
   requestLogger,
   securityHeaders,
-} from '@app/shared';
+} from '@uhg-haas/shared';
 import { env } from './config/env';
 import authRoutes from './routes/auth.routes';
 import healthRoutes from './routes/health.routes';

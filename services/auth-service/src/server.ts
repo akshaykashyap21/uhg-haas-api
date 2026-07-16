@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { initializeDataSource } from '@app/shared';
+import { initializeDataSource } from '@uhg-haas/shared';
 import { createApp } from './app';
 import { AppDataSource } from './config/data-source';
 import { env } from './config/env';

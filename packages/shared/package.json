@@ -1,13 +1,26 @@
 {
-  "name": "@app/shared",
+  "name": "@uhg-haas/shared",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "description": "Shared utilities for UHG HAAS API services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akshaykashyap21/uhg-haas-api.git",
+    "directory": "packages/shared"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -16,10 +29,10 @@
     "express-rate-limit": "^7.3.1",
     "helmet": "^7.1.0",
     "joi": "^17.13.3",
-    "jsonwebtoken": "^9.0.2",
-    "mssql": "^10.0.4",
-    "typeorm": "^0.3.20",
-    "uuid": "^10.0.0",
+    "jsonwebtoken": "9.0.2",
+    "mssql": "10.0.2",
+    "typeorm": "0.3.20",
+    "uuid": "11.1.1",
     "winston": "^3.13.0"
   },
   "devDependencies": {

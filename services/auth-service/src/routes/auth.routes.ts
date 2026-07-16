@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate, createRateLimiter, JwtService, validate } from '@app/shared';
+import { authenticate, createRateLimiter, JwtService, validate } from '@uhg-haas/shared';
 import { env } from '../config/env';
 import { AuthController } from '../controllers/AuthController';
 import {

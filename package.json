@@ -1,24 +1,33 @@
 {
-  "name": "azure-express-microservices",
+  "name": "@uhg-haas/api",
   "version": "1.0.0",
   "private": true,
-  "description": "Lean Azure-native Express.js API: gateway + auth service, Azure SQL, TypeORM, JWT, Joi",
+  "description": "UHG HAAS API — gateway + auth service on Azure SQL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akshaykashyap21/uhg-haas-api.git"
+  },
   "workspaces": [
     "packages/*",
     "services/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "build:shared": "npm run build -w @app/shared",
-    "dev:auth": "cross-env APP_ENV=development npm run dev -w @app/auth-service",
-    "dev:gateway": "cross-env APP_ENV=development npm run dev -w @app/api-gateway",
+    "build:shared": "npm run build -w @uhg-haas/shared",
+    "dev:auth": "cross-env APP_ENV=development npm run dev -w @uhg-haas/auth-service",
+    "dev:gateway": "cross-env APP_ENV=development npm run dev -w @uhg-haas/api-gateway",
     "dev:all": "cross-env APP_ENV=development concurrently -n gateway,auth -c blue,green \"npm:dev:gateway\" \"npm:dev:auth\"",
-    "start:auth": "cross-env APP_ENV=development npm run start -w @app/auth-service",
-    "start:gateway": "cross-env APP_ENV=development npm run start -w @app/api-gateway",
-    "start:auth:staging": "cross-env APP_ENV=staging npm run start -w @app/auth-service",
-    "start:gateway:staging": "cross-env APP_ENV=staging npm run start -w @app/api-gateway",
-    "start:auth:prod": "cross-env APP_ENV=production npm run start -w @app/auth-service",
-    "start:gateway:prod": "cross-env APP_ENV=production npm run start -w @app/api-gateway",
+    "start:auth": "cross-env APP_ENV=development npm run start -w @uhg-haas/auth-service",
+    "start:gateway": "cross-env APP_ENV=development npm run start -w @uhg-haas/api-gateway",
+    "start:auth:staging": "cross-env APP_ENV=staging npm run start -w @uhg-haas/auth-service",
+    "start:gateway:staging": "cross-env APP_ENV=staging npm run start -w @uhg-haas/api-gateway",
+    "start:auth:prod": "cross-env APP_ENV=production npm run start -w @uhg-haas/auth-service",
+    "start:gateway:prod": "cross-env APP_ENV=production npm run start -w @uhg-haas/api-gateway",
+    "version:sync": "node scripts/sync-versions.mjs",
+    "version:bump:patch": "npm version patch --no-git-tag-version && node scripts/sync-versions.mjs",
+    "version:bump:minor": "npm version minor --no-git-tag-version && node scripts/sync-versions.mjs",
+    "version:bump:major": "npm version major --no-git-tag-version && node scripts/sync-versions.mjs",
+    "publish:shared": "npm run build:shared && npm publish -w @uhg-haas/shared",
     "lint": "eslint \"packages/**/*.{ts,js}\" \"services/**/*.{ts,js}\"",
     "docker:sql": "docker compose up -d sqlserver",
     "docker:down": "docker compose down"
@@ -26,6 +35,22 @@
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
+  },
+  "overrides": {
+    "typeorm": "0.3.20",
+    "mssql": "10.0.2",
+    "@azure/abort-controller": "2.1.2",
+    "@azure/core-auth": "1.9.0",
+    "@azure/core-client": "1.9.2",
+    "@azure/core-lro": "2.7.2",
+    "@azure/core-paging": "1.6.2",
+    "@azure/core-rest-pipeline": "1.18.2",
+    "@azure/core-tracing": "1.1.2",
+    "@azure/core-util": "1.11.0",
+    "@azure/logger": "1.1.4",
+    "@azure-rest/core-client": "2.3.4",
+    "@typespec/ts-http-runtime": "0.2.2",
+    "uuid": "11.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",

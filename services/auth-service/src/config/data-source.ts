@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { buildDataSourceOptions } from '@app/shared';
+import { buildDataSourceOptions } from '@uhg-haas/shared';
 import { env } from './env';
 import { User } from '../entities/User';
 import { RefreshToken } from '../entities/RefreshToken';
