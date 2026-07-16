@@ -13,6 +13,7 @@ export class AuthController {
   }
 
   register = asyncHandler(async (req: Request, res: Response) => {
+    console.log("request appeared!AKSHAY")
     const result = await this.authService.register(req.body);
     return sendSuccess(res, result, 'User registered successfully', 201, req.correlationId);
   });
