@@ -26,7 +26,7 @@ services:
   #   build:
   #     context: .
   #     args: { SERVICE: auth-service }
-  #   ports: ["3001:3001"]
+  #   ports: ["3002:3002"]
   #   env_file: ./services/auth-service/.env
   #   environment:
   #     AZURE_SQL_HOST: sqlserver

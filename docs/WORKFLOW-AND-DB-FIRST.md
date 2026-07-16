@@ -17,7 +17,7 @@ Client / Swagger UI
           │ HTTP proxy
           ▼
 ┌───────────────────┐
-│   auth-service    │  :3001   register / login / refresh / me
+│   auth-service    │  :3002   register / login / refresh / me
 │  (Express + JWT)  │
 └─────────┬─────────┘
           │ TypeORM
@@ -40,7 +40,7 @@ Client / Swagger UI
 ```bash
 npm run build:shared
 npm run db:create:local    # once — creates uhg DB (Windows auth)
-npm run dev:all            # gateway :3000 + auth :3001
+npm run dev:all            # gateway :3000 + auth :3002
 ```
 
 Docs UI: `http://localhost:3000/api/docs`
@@ -50,7 +50,7 @@ Docs UI: `http://localhost:3000/api/docs`
 ## 2. Request workflow (auth example)
 
 1. Client calls `POST http://localhost:3000/api/auth/login`
-2. Gateway forwards to `http://localhost:3001/api/auth/login`
+2. Gateway forwards to `http://localhost:3002/api/auth/login`
 3. `auth-service` validates body with Joi
 4. `AuthService` uses TypeORM repositories (`User`, `RefreshToken`)
 5. SQL runs against tables that **already exist** in the database

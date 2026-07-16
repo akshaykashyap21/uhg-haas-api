@@ -3,7 +3,7 @@
 Gateway + Auth microservice on Azure SQL. TypeORM, JWT, Joi — nothing else pretended to be needed.
 
 ```
-Client → api-gateway (:3000) → auth-service (:3001) → Azure SQL / SQL Server
+Client → api-gateway (:3000) → auth-service (:3002) → Azure SQL / SQL Server
 ```
 
 ## Why this shape

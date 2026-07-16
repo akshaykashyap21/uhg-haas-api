@@ -18,7 +18,7 @@ router.get('/health', (_req, res) => {
 
 /**
  * Gateway readiness: probes auth-service.
- * If port 3001 returns HTML 404, something else owns that port — not auth-service.
+ * If port 3002 returns HTML 404, something else owns that port — not auth-service.
  */
 router.get('/ready', async (_req, res) => {
   const base = env.AUTH_SERVICE_URL.replace(/\/$/, '');
@@ -58,7 +58,7 @@ router.get('/ready', async (_req, res) => {
           problem:
             `Port on ${base} returned HTML, not auth-service JSON. ` +
             'Another process owns that port (or auth is not running there).',
-          hint: 'Run: netstat -ano | findstr :3001   then Stop-Process -Id <PID> -Force',
+          hint: 'Run: netstat -ano | findstr :3002   then Stop-Process -Id <PID> -Force',
           url: authUrl,
           httpStatus: authRes.status,
           bodyPreview: text.slice(0, 180),
