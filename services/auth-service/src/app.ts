@@ -50,7 +50,7 @@ export function createApp() {
       ok: true,
       service: env.SERVICE_NAME,
       authBase: '/api/v1/auth',
-      tips: ['GET /health', 'GET /ping', 'GET /api/v1/auth/__ping', 'POST /api/v1/auth/register'],
+      tips: ['GET /health', 'GET /ping', 'GET /api/v1/auth/ping', 'GET /api/v1/auth/ready', 'POST /api/v1/auth/register'],
     });
   });
 

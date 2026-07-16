@@ -11,28 +11,66 @@ router.get('/health', (_req, res) => {
   });
 });
 
+/**
+ * Gateway readiness: probes auth under /api/v1/auth/ready (same prefix as proxy).
+ * Falls back to /ready then /health for older auth builds.
+ */
 router.get('/ready', async (_req, res) => {
-  const authUrl = `${env.AUTH_SERVICE_URL}/ready`;
+  const base = env.AUTH_SERVICE_URL.replace(/\/$/, '');
+  const candidates = [`${base}/api/v1/auth/ready`, `${base}/ready`, `${base}/health`];
+
   let authStatus: 'up' | 'not_ready' | 'unreachable' = 'unreachable';
   let authDetail: Record<string, unknown> | string | undefined;
+  let usedUrl: string | undefined;
+  let sawHttpResponse = false;
 
-  try {
-    const authRes = await fetch(authUrl, {
-      signal: AbortSignal.timeout(3000),
-    });
-    const body = (await authRes.json().catch(() => null)) as Record<string, unknown> | null;
+  for (const authUrl of candidates) {
+    try {
+      const authRes = await fetch(authUrl, {
+        signal: AbortSignal.timeout(3000),
+        headers: { accept: 'application/json' },
+      });
+      const text = await authRes.text();
+      let body: Record<string, unknown> | null = null;
+      try {
+        body = text ? (JSON.parse(text) as Record<string, unknown>) : null;
+      } catch {
+        body = null;
+      }
 
-    if (authRes.ok) {
-      authStatus = 'up';
-      authDetail = body ?? undefined;
-    } else {
-      // Process is up, but its own readiness failed (almost always database).
+      usedUrl = authUrl;
+      sawHttpResponse = true;
+
+      if (authRes.ok) {
+        const isHealthFallback = authUrl.endsWith('/health');
+        authStatus = 'up';
+        authDetail = isHealthFallback
+          ? { note: 'auth /ready missing; /health OK (DB not verified)', body }
+          : (body ?? undefined);
+        break;
+      }
+
+      if (authRes.status === 404) {
+        authDetail = {
+          httpStatus: 404,
+          url: authUrl,
+          body: body ?? text.slice(0, 200),
+        };
+        continue;
+      }
+
       authStatus = 'not_ready';
-      authDetail = body ?? { httpStatus: authRes.status };
+      authDetail = body ?? { httpStatus: authRes.status, url: authUrl, body: text.slice(0, 200) };
+      break;
+    } catch (err) {
+      authDetail = err instanceof Error ? err.message : 'fetch failed';
+      usedUrl = authUrl;
+      continue;
     }
-  } catch (err) {
-    authStatus = 'unreachable';
-    authDetail = err instanceof Error ? err.message : 'fetch failed';
+  }
+
+  if (sawHttpResponse && authStatus === 'unreachable') {
+    authStatus = 'not_ready';
   }
 
   const ready = authStatus === 'up';
@@ -41,6 +79,7 @@ router.get('/ready', async (_req, res) => {
     checks: {
       auth: authStatus,
       authUpstream: env.AUTH_SERVICE_URL,
+      probedUrl: usedUrl,
     },
     authDetail,
     service: env.SERVICE_NAME,
