@@ -50,7 +50,6 @@ export function createApp() {
 
   app.use(healthRoutes);
 
-  /** Root ping — http://127.0.0.1:3001/ping */
   app.get('/ping', (_req, res) => {
     res.status(200).json({
       ok: true,
