@@ -79,20 +79,27 @@ Replace `REPLACE_*` values in staging/production (prefer Key Vault / App Setting
 
 ## JFrog Artifactory (npm)
 
-Packages use scope **`@uhg-haas`** and SemVer (`1.0.0`). Installs go through **`glb-npm-vir`** on `centraluhg.jfrog.io`.
+Packages use scope **`@uhg-haas`** and SemVer (`1.0.0`). Public deps install via **`glb-npm-vir`**; internal packages publish to **`glb-npm-loc`** on `centraluhg.jfrog.io`.
 
 ### Setup
 
-```powershell
-$env:JFROG_NPM_REGISTRY_HOST = "centraluhg.jfrog.io"
-$env:JFROG_NPM_VIRTUAL_REPO = "glb-npm-vir"
-$env:JFROG_NPM_LOCAL_REPO = "glb-npm-loc"   # confirm name with your Artifactory admin
-$env:JFROG_NPM_TOKEN = "<identity-token>"
+1. Copy `env/npm.jfrog.env.example` → `env/npm.jfrog.env` and set a real **identity token**.
+2. Load the token (host/repos are already in `.npmrc`):
 
+```powershell
+. .\scripts\load-jfrog-env.ps1
+npm config get registry
+# → https://centraluhg.jfrog.io/artifactory/api/npm/glb-npm-vir/
+
+# Clean install (stale lockfiles with @app/* or workspace:* will break npm)
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
 Remove-Item package-lock.json -ErrorAction SilentlyContinue
 npm install
 ```
+
+If you see `ENOTFOUND` for a URL containing `${JFROG_...}` or `$%7BJFROG_...%7D`, the project `.npmrc` is outdated — pull the latest (host is hardcoded) and retry.
+
+If you see `Unsupported URL Type "workspace:"`, delete `package-lock.json` + `node_modules` and run `npm install` from the **repo root** (services use SemVer `1.0.0`, linked via workspaces).
 
 ### JFrog CoolNPM / DelayNPM (403 on install)
 
@@ -104,14 +111,18 @@ If you see `blocked by jfrog packages curation service` / `Package version is 3 
 
 ### Versioning & publish
 
-All workspace packages stay on the **same version** (JFrog expects exact SemVer on internal deps):
+All workspace packages stay on the **same version** (JFrog consumers expect exact SemVer, not `workspace:*`):
 
 ```bash
 npm run version:bump:patch   # 1.0.0 → 1.0.1 across root + workspaces
-npm run publish:shared       # publishes @uhg-haas/shared to JFrog npm-local
+npm run publish:shared       # publishes @uhg-haas/shared to glb-npm-loc
 ```
 
-Docker builds need the same `JFROG_*` build args (see `Dockerfile`).
+Docker:
+
+```bash
+docker build --build-arg SERVICE=auth-service --build-arg JFROG_NPM_TOKEN=$env:JFROG_NPM_TOKEN -t auth-service .
+```
 
 ## API documentation
 

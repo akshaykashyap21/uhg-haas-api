@@ -9,7 +9,8 @@
     "dist"
   ],
   "publishConfig": {
-    "access": "restricted"
+    "access": "restricted",
+    "registry": "https://centraluhg.jfrog.io/artifactory/api/npm/glb-npm-loc/"
   },
   "repository": {
     "type": "git",

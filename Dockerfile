@@ -8,13 +8,9 @@ COPY packages/shared/package.json ./packages/shared/
 COPY services/auth-service/package.json ./services/auth-service/
 COPY services/api-gateway/package.json ./services/api-gateway/
 ARG JFROG_NPM_TOKEN
-ARG JFROG_NPM_REGISTRY_HOST
-ARG JFROG_NPM_VIRTUAL_REPO=npm-virtual
-ARG JFROG_NPM_LOCAL_REPO=npm-local
-ENV JFROG_NPM_TOKEN=$JFROG_NPM_TOKEN \
-    JFROG_NPM_REGISTRY_HOST=$JFROG_NPM_REGISTRY_HOST \
-    JFROG_NPM_VIRTUAL_REPO=$JFROG_NPM_VIRTUAL_REPO \
-    JFROG_NPM_LOCAL_REPO=$JFROG_NPM_LOCAL_REPO
+ENV JFROG_NPM_TOKEN=$JFROG_NPM_TOKEN
+# Fail the image build if token is missing (otherwise npm will 401 against Artifactory).
+RUN test -n "$JFROG_NPM_TOKEN" || (echo "JFROG_NPM_TOKEN build-arg is required" && exit 1)
 RUN npm install --workspace=@uhg-haas/shared --workspace=@uhg-haas/${SERVICE} --include-workspace-root
 
 FROM node:20-alpine AS build
