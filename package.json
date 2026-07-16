@@ -16,7 +16,7 @@
     "build:shared": "npm run build -w @uhg-haas/shared",
     "dev:auth": "cross-env APP_ENV=development npm run dev -w @uhg-haas/auth-service",
     "dev:gateway": "cross-env APP_ENV=development npm run dev -w @uhg-haas/api-gateway",
-    "dev:all": "cross-env APP_ENV=development concurrently -n gateway,auth -c blue,green \"npm:dev:gateway\" \"npm:dev:auth\"",
+    "dev:all": "npm run build:shared && node scripts/ensure-shared-in-node-modules.mjs && cross-env APP_ENV=development concurrently -n gateway,auth -c blue,green \"npm:dev:gateway\" \"npm:dev:auth\"",
     "start:auth": "cross-env APP_ENV=development npm run start -w @uhg-haas/auth-service",
     "start:gateway": "cross-env APP_ENV=development npm run start -w @uhg-haas/api-gateway",
     "start:auth:staging": "cross-env APP_ENV=staging npm run start -w @uhg-haas/auth-service",
