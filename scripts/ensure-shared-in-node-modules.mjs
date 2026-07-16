@@ -3,36 +3,30 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Ensures `node_modules/@uhg-haas/shared/dist` exists for local dev.
-// This prevents runtime failures when the shared package is installed from a registry
-// without build artifacts (JFrog "files" curation / missing dist).
-
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const localPkg = path.join(root, 'packages', 'shared');
+const localDist = path.join(localPkg, 'dist');
+const nodePkg = path.join(root, 'node_modules', '@uhg-haas', 'shared');
 
-const localDist = path.join(root, 'packages', 'shared', 'dist');
-const nodeSharedPkg = path.join(root, 'node_modules', '@uhg-haas', 'shared');
-const nodeDist = path.join(nodeSharedPkg, 'dist');
+if (!fs.existsSync(path.join(localDist, 'index.js'))) {
+  console.error('Missing packages/shared/dist — run: npm run build:shared');
+  process.exit(1);
+}
 
-if (!fs.existsSync(localDist)) {
-  // Nothing we can do without a local build.
+if (!fs.existsSync(nodePkg)) {
+  // Workspaces may resolve @uhg-haas/shared without a node_modules folder entry.
   process.exit(0);
 }
 
-if (!fs.existsSync(nodeSharedPkg)) {
-  // With proper workspaces, this usually doesn't exist yet (or is symlinked).
-  process.exit(0);
-}
-
-fs.mkdirSync(nodeDist, { recursive: true });
-
-// Node 16+ supports fs.cpSync. Use it to copy dist contents.
 try {
-  fs.cpSync(localDist, nodeDist, { recursive: true, force: true });
-} catch (err) {
-  // If cpSync isn't available, fallback to no-op.
-  // eslint-disable-next-line no-console
-  console.warn('ensure-shared-in-node-modules: copy failed', err);
+  if (fs.realpathSync(localPkg) === fs.realpathSync(nodePkg)) {
+    // Workspace symlink — same package, no copy needed.
+    process.exit(0);
+  }
+} catch {
+  process.exit(0);
 }
 
-process.exit(0);
-
+const nodeDist = path.join(nodePkg, 'dist');
+fs.mkdirSync(nodeDist, { recursive: true });
+fs.cpSync(localDist, nodeDist, { recursive: true, force: true });

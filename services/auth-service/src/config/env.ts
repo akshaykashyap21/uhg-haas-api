@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { loadDotenv, loadServiceEnv, ServiceEnv } from '@uhg-haas/shared';
 
-loadDotenv();
+loadDotenv('auth-service');
 
 export interface AuthServiceEnv extends ServiceEnv {
   BCRYPT_SALT_ROUNDS: number;

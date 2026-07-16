@@ -1,7 +1,7 @@
 import Joi from 'joi';
 import { AppEnv, loadAppEnv, loadDotenv } from '@uhg-haas/shared';
 
-loadDotenv();
+loadDotenv('api-gateway');
 
 export interface GatewayEnv extends AppEnv {
   AUTH_SERVICE_URL: string;
