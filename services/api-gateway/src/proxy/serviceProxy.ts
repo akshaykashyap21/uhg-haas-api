@@ -2,15 +2,24 @@ import { RequestHandler } from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { Logger } from 'winston';
 
+/**
+ * Proxies gateway routes to an upstream service.
+ * Auth and gateway share the same public path (e.g. /api/v1/auth),
+ * so we forward `originalUrl` as-is — do not prefix again.
+ */
 export function createServiceProxy(
   target: string,
-  upstreamBasePath: string,
+  _upstreamBasePath: string,
   logger: Logger,
 ): RequestHandler {
   return createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathRewrite: (path) => `${upstreamBasePath}${path}`,
+    pathRewrite: (_path, req) => {
+      // Express may strip the mount path from req.url; originalUrl stays complete.
+      const original = (req as { originalUrl?: string }).originalUrl ?? _path;
+      return original;
+    },
     proxyTimeout: 30000,
     timeout: 30000,
     on: {
