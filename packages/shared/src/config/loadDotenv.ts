@@ -2,14 +2,16 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-function findMonorepoRoot(start: string): string {
-  let dir = start;
+/**
+ * Resolve the service package root (directory with package.json that is not the monorepo root).
+ */
+function findServiceRoot(start: string): string {
+  let dir = path.resolve(start);
   for (let i = 0; i < 8; i++) {
-    if (fs.existsSync(path.join(dir, 'env')) && fs.existsSync(path.join(dir, 'package.json'))) {
-      const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')) as {
-        workspaces?: unknown;
-      };
-      if (pkg.workspaces) {
+    const pkgPath = path.join(dir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { workspaces?: unknown };
+      if (!pkg.workspaces) {
         return dir;
       }
     }
@@ -17,30 +19,31 @@ function findMonorepoRoot(start: string): string {
     if (parent === dir) break;
     dir = parent;
   }
-  return start;
+  return path.resolve(start);
 }
 
-function resolveEnvKey(appEnv: string): string {
-  if (appEnv === 'dev' || appEnv === 'development') return 'development';
-  if (appEnv === 'stage' || appEnv === 'staging') return 'staging';
-  if (appEnv === 'prod' || appEnv === 'production') return 'production';
-  return 'development';
+function resolveEnvFileName(appEnv: string): string {
+  if (appEnv === 'stage' || appEnv === 'staging') return '.env.staging';
+  if (appEnv === 'prod' || appEnv === 'production') return '.env.production';
+  return '.env';
 }
 
 /**
- * Loads `env/{serviceName}.{environment}.env` from monorepo root.
+ * Loads env for the current service from its own directory:
+ * - development → `.env`
+ * - staging     → `.env.staging`
+ * - production  → `.env.production`
  */
-export function loadDotenv(serviceName: string, cwd = process.cwd()): string {
+export function loadDotenv(cwd = process.cwd()): string {
   const appEnv = (process.env.APP_ENV || process.env.NODE_ENV || 'development').toLowerCase();
-  const envKey = resolveEnvKey(appEnv);
-  const root = findMonorepoRoot(cwd);
-  const fileName = `${serviceName}.${envKey}.env`;
-  const fullPath = path.join(root, 'env', fileName);
+  const fileName = resolveEnvFileName(appEnv);
+  const serviceRoot = findServiceRoot(cwd);
+  const fullPath = path.join(serviceRoot, fileName);
 
   if (!fs.existsSync(fullPath)) {
     throw new Error(
       `Env file not found: ${fullPath}\n` +
-        `Create it from env/${serviceName}.development.env template or copy from a teammate.`,
+        `Create ${fileName} in the service folder (copy from .env for local/dev).`,
     );
   }
 

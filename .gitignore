@@ -3,10 +3,11 @@ dist/
 build/
 coverage/
 
-# Env secrets — commit development templates; ignore prod/staging secrets + JFrog token
+# Per-service env — commit `.env` (dev); ignore staging/prod secrets
+services/*/.env.staging
+services/*/.env.production
+# Optional monorepo JFrog token file
 env/npm.jfrog.env
-env/*.staging.env
-env/*.production.env
 
 *.log
 npm-debug.log*

@@ -22,7 +22,9 @@ Add a second service when you have a **real** bounded context (billing, claims, 
 ```bash
 npm install
 
-# Env files in env/ folder (see env/auth-service.development.env)
+# Each service owns its env files:
+#   services/auth-service/.env
+#   services/api-gateway/.env
 
 npm run build:shared
 npm run dev:all
@@ -37,7 +39,7 @@ No Docker required. Uses your Windows login to connect to local SQL Server.
    ```sql
    CREATE DATABASE uhg;
    ```
-3. Configure `env/auth-service.development.env`:
+3. Configure `services/auth-service/.env`:
    ```env
    AZURE_SQL_HOST=localhost
    AZURE_SQL_DATABASE=uhg
@@ -48,11 +50,13 @@ No Docker required. Uses your Windows login to connect to local SQL Server.
 
 ### Environments
 
+Each service loads env from its own folder:
+
 | `APP_ENV` | File loaded | Typical use |
 |-----------|-------------|-------------|
-| `development` (default) | `.env` | Docker SQL, debug logs, TypeORM sync |
-| `staging` | `.env.staging` | Azure SQL staging, sync off |
-| `production` | `.env.production` | Azure SQL prod, sync off, warn logs |
+| `development` (default) | `services/<service>/.env` | Local SQL, debug logs, TypeORM sync |
+| `staging` | `services/<service>/.env.staging` | Azure SQL staging, sync off |
+| `production` | `services/<service>/.env.production` | Azure SQL prod, sync off, warn logs |
 
 ```bash
 npm run start:auth:staging
