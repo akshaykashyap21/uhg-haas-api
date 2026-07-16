@@ -25,6 +25,12 @@ export function createApp() {
   app.use(express.json({ limit: '1mb' }));
   app.use(correlationIdMiddleware);
 
+  // Identify this process as auth-service (gateway readiness detects impostors on :3001)
+  app.use((_req, res, next) => {
+    res.setHeader('X-Service-Name', 'auth-service');
+    next();
+  });
+
   // Visible even if winston is misconfigured — proves the request hit Express
   app.use((req, _res, next) => {
     // eslint-disable-next-line no-console
