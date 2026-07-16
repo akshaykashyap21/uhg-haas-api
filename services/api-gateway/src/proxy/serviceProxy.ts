@@ -16,7 +16,6 @@ export function createServiceProxy(
     target,
     changeOrigin: true,
     pathRewrite: (_path, req) => {
-      // Express may strip the mount path from req.url; originalUrl stays complete.
       const original = (req as { originalUrl?: string }).originalUrl ?? _path;
       return original;
     },
@@ -25,6 +24,18 @@ export function createServiceProxy(
     on: {
       proxyReq: (proxyReq, req) => {
         const correlationId = (req as { correlationId?: string }).correlationId;
+        const originalUrl = (req as { originalUrl?: string }).originalUrl;
+        const forwardedPath = proxyReq.path;
+
+        logger.info('Gateway proxy → upstream', {
+          stage: 'gateway-proxy',
+          correlationId,
+          method: req.method,
+          originalUrl,
+          target,
+          forwardedPath,
+        });
+
         if (correlationId) {
           proxyReq.setHeader('x-correlation-id', correlationId);
         }
@@ -32,8 +43,18 @@ export function createServiceProxy(
           proxyReq.setHeader('authorization', req.headers.authorization);
         }
       },
+      proxyRes: (proxyRes, req) => {
+        logger.info('Gateway proxy ← upstream', {
+          stage: 'gateway-proxy',
+          correlationId: (req as { correlationId?: string }).correlationId,
+          method: req.method,
+          originalUrl: (req as { originalUrl?: string }).originalUrl,
+          upstreamStatus: proxyRes.statusCode,
+        });
+      },
       error: (err, req, res) => {
         logger.error('Upstream proxy error', {
+          stage: 'gateway-proxy',
           target,
           path: (req as { originalUrl?: string }).originalUrl,
           error: err.message,

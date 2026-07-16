@@ -3,23 +3,18 @@ import {
   correlationIdMiddleware,
   corsMiddleware,
   createRateLimiter,
-  createLogger,
   errorHandler,
   notFoundHandler,
   requestLogger,
   securityHeaders,
 } from '@uhg-haas/shared';
-import { env } from './config/env';
+import { logger as authLogger } from './config/logger';
 import authRoutes from './routes/auth.routes';
 import healthRoutes from './routes/health.routes';
 
 export function createApp() {
   const app = express();
-  const logger = createLogger({
-    serviceName: env.SERVICE_NAME,
-    level: env.LOG_LEVEL,
-    nodeEnv: env.NODE_ENV,
-  });
+  const logger = authLogger;
 
   app.set('trust proxy', 1);
   app.disable('x-powered-by');

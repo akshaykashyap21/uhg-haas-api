@@ -124,6 +124,13 @@ Docker:
 docker build --build-arg SERVICE=auth-service --build-arg JFROG_NPM_TOKEN=$env:JFROG_NPM_TOKEN -t auth-service .
 ```
 
+## Documentation
+
+| Doc | Contents |
+|-----|----------|
+| [docs/WORKFLOW-AND-DB-FIRST.md](docs/WORKFLOW-AND-DB-FIRST.md) | Architecture workflow + **DB-first** how-to (create tables in SQL, map/link entities in Node) |
+| [db/README.md](db/README.md) | SQL script layout for schema changes |
+
 ## API documentation
 
 Interactive Swagger UI (OpenAPI 3) is served from the gateway:
