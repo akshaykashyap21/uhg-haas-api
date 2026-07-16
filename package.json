@@ -51,7 +51,8 @@
     "@azure/logger": "1.1.4",
     "@azure-rest/core-client": "2.3.4",
     "@typespec/ts-http-runtime": "0.2.2",
-    "uuid": "11.1.1"
+    "uuid": "11.1.1",
+    "node-abi": "3.94.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
