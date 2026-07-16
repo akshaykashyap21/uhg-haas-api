@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { authenticate, createRateLimiter, JwtService, validate } from '@uhg-haas/shared';
 import { env } from '../config/env';
 import { logger } from '../config/logger';
+import { AppDataSource } from '../config/data-source';
 import { AuthController } from '../controllers/AuthController';
 import {
   changePasswordSchema,
@@ -39,8 +40,41 @@ function traceAuthRoute(req: Request, _res: Response, next: NextFunction): void 
 
 router.use(traceAuthRoute);
 
-router.get('/__ping', (_req, res) => {
-  res.status(200).json({ ok: true, service: 'auth-service', path: '/api/v1/auth/__ping' });
+/** Liveness under the proxied prefix (gateway-friendly). */
+router.get('/health', (_req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: env.SERVICE_NAME,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+/** Readiness + DB check under the proxied prefix. */
+router.get('/ready', async (_req, res) => {
+  let db = false;
+  if (AppDataSource.isInitialized) {
+    try {
+      await AppDataSource.query('SELECT 1 AS ok');
+      db = true;
+    } catch {
+      db = false;
+    }
+  }
+
+  res.status(db ? 200 : 503).json({
+    status: db ? 'ready' : 'not_ready',
+    checks: { database: db ? 'up' : 'down' },
+    service: env.SERVICE_NAME,
+  });
+});
+
+/** Ping — http://localhost:3000/api/v1/auth/ping */
+router.get(['/ping', '/__ping', '/_ping'], (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: 'auth-service',
+    path: '/api/v1/auth/ping',
+  });
 });
 
 router.post('/register', authLimiter, validate(registerSchema), controller.register);

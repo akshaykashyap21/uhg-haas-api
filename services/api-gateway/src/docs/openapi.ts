@@ -187,13 +187,26 @@ export const openApiDocument = {
       get: {
         tags: ['Health'],
         summary: 'Gateway readiness (checks auth upstream)',
+        description:
+          'Probes auth at /api/v1/auth/ready (then /ready, then /health). Returns 503 if auth DB is down.',
         responses: {
           '200': { description: 'Ready' },
           '503': { description: 'Upstream not ready' },
         },
       },
     },
-    '/api/v1/auth/__ping': {
+    '/api/v1/auth/ready': {
+      get: {
+        tags: ['Auth'],
+        summary: 'Auth service readiness (DB check)',
+        description: 'Proxied to auth-service. Verifies SQL connectivity.',
+        responses: {
+          '200': { description: 'Auth + DB ready' },
+          '503': { description: 'Database down' },
+        },
+      },
+    },
+    '/api/v1/auth/ping': {
       get: {
         tags: ['Auth'],
         summary: 'Auth service ping',
@@ -209,7 +222,7 @@ export const openApiDocument = {
                   properties: {
                     ok: { type: 'boolean', example: true },
                     service: { type: 'string', example: 'auth-service' },
-                    path: { type: 'string', example: '/api/v1/auth/__ping' },
+                    path: { type: 'string', example: '/api/v1/auth/ping' },
                   },
                 },
               },
