@@ -49,7 +49,7 @@ router.get('/health', (_req, res) => {
   });
 });
 
-/** Readiness + DB check under the proxied prefix. */
+
 router.get('/ready', async (_req, res) => {
   let db = false;
   if (AppDataSource.isInitialized) {
@@ -68,7 +68,6 @@ router.get('/ready', async (_req, res) => {
   });
 });
 
-/** Ping — http://localhost:3000/api/v1/auth/ping */
 router.get(['/ping', '/__ping', '/_ping'], (_req, res) => {
   res.status(200).json({
     ok: true,

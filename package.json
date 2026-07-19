@@ -2,10 +2,10 @@
   "name": "@uhg-haas/api",
   "version": "1.0.0",
   "private": true,
-  "description": "UHG HAAS API — gateway + auth service on Azure SQL",
+  "description": "UHG HAAS API",
   "repository": {
     "type": "git",
-    "url": "https://github.com/akshaykashyap21/uhg-haas-api.git"
+    "url": "https://github.com"
   },
   "workspaces": [
     "packages/*",
