@@ -12,7 +12,6 @@ import {
   UserRole,
 } from '@uhg-haas/shared';
 import { env } from '../config/env';
-import { logger } from '../config/logger';
 import { AppDataSource } from '../config/data-source';
 import { User } from '../entities/User';
 import { RefreshToken } from '../entities/RefreshToken';
@@ -51,10 +50,8 @@ export class AuthService {
   }
 
   async register(input: RegisterInput): Promise<{ user: AuthUserDto; tokens: AuthTokens }> {
-    logger.info('AuthService.register start', { stage: 'service', email: input.email });
     const existing = await this.userRepo.findOne({ where: { email: input.email } });
     if (existing) {
-      logger.warn('AuthService.register conflict', { stage: 'service', email: input.email });
       throw new ConflictError('Email is already registered');
     }
 
@@ -69,7 +66,6 @@ export class AuthService {
       }),
     );
 
-    logger.info('AuthService.register saved user', { stage: 'service', userId: user.id });
     return { user: this.toDto(user), tokens: await this.issueTokens(user) };
   }
 
@@ -77,10 +73,8 @@ export class AuthService {
     email: string,
     password: string,
   ): Promise<{ user: AuthUserDto; tokens: AuthTokens }> {
-    logger.info('AuthService.login start', { stage: 'service', email });
     const user = await this.userRepo.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-      logger.warn('AuthService.login invalid credentials', { stage: 'service', email });
       throw new UnauthorizedError('Invalid email or password', 'INVALID_CREDENTIALS');
     }
 

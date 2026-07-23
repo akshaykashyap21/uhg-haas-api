@@ -1,165 +1,98 @@
-# Azure Express API {Microservices Architecture}
+# UHG HAAS API
 
-Gateway + Auth microservice on Azure SQL. TypeORM, JWT, Joi — nothing else pretended to be needed.
+Gateway + auth service on Azure SQL / SQL Server. TypeORM, JWT, Joi.
 
 ```
-Client → api-gateway (:3000) → auth-service (:3002) → Azure SQL / SQL Server
+Client → api-gateway (:3000) → auth-service (:3001) → SQL Server
 ```
-
-## Why this shape
-
-| Keep | Dropped (and why) |
-|------|-------------------|
-| Gateway for a single public edge | User microservice with a second DB — no producer/consumer, pure ceremony |
-| JWT access + refresh rotation | Account lockout columns — rate limit covers abuse for now |
-| TypeORM + one database | Bicep P1v3 / Key Vault / App Insights stubs — add when you deploy for real |
-| Joi on write endpoints | Client-chosen roles on register — privilege escalation waiting to happen |
-
-Add a second service when you have a **real** bounded context (billing, claims, etc.), not a mirrored `users` table.
 
 ## Quick start
 
 ```bash
 npm install
-
-# Each service owns its env files:
-#   services/auth-service/.env
-#   services/api-gateway/.env
-
 npm run build:shared
 npm run dev:all
 ```
 
+Env files live per service:
+
+- `services/auth-service/.env`
+- `services/api-gateway/.env`
+
 ### Local SQL Server (Windows Authentication)
 
-No Docker required. Uses your Windows login to connect to local SQL Server.
-
-1. Install **SQL Server Express** or **Developer**.
-2. Create database in SSMS:
+1. Install SQL Server Express or Developer.
+2. Create the database:
    ```sql
    CREATE DATABASE uhg;
    ```
-3. Configure `services/auth-service/.env`:
+3. In `services/auth-service/.env`:
    ```env
    AZURE_SQL_HOST=localhost
    AZURE_SQL_DATABASE=uhg
    AZURE_SQL_WINDOWS_AUTH=true
    AZURE_SQL_TRUST_SERVER_CERTIFICATE=true
+   TYPEORM_SYNC=false
    ```
    For Express: `AZURE_SQL_HOST=localhost\\SQLEXPRESS`
 
-   Local Windows auth uses **`msnodesqlv8`** (not tedious). Needs:
-   - Node 20/22/24 (prebuilds)
-   - **ODBC Driver 17 for SQL Server**
-   - `msnodesqlv8` installed (`npm install` in the monorepo)
-
-   Create the DB once:
-   ```bash
-   npm run db:create:local
-   ```
+Requires ODBC Driver 17 and `msnodesqlv8`. Create DB once with `npm run db:create:local`, then apply scripts under `db/auth/`.
 
 ### Environments
 
-Each service loads env from its own folder:
-
-| `APP_ENV` | File loaded | Typical use |
-|-----------|-------------|-------------|
-| `development` (default) | `services/<service>/.env` | Local SQL, debug logs, TypeORM sync |
-| `staging` | `services/<service>/.env.staging` | Azure SQL staging, sync off |
-| `production` | `services/<service>/.env.production` | Azure SQL prod, sync off, warn logs |
+| `APP_ENV` | File | Notes |
+|-----------|------|-------|
+| `development` | `.env` | Local SQL |
+| `staging` | `.env.staging` | Azure SQL staging |
+| `production` | `.env.production` | Azure SQL prod |
 
 ```bash
 npm run start:auth:staging
 npm run start:gateway:staging
-npm run start:auth:prod
-npm run start:gateway:prod
 ```
-
-Replace `REPLACE_*` values in staging/production (prefer Key Vault / App Settings for secrets).
 
 ## JFrog Artifactory (npm)
 
-Packages use scope **`@uhg-haas`** and SemVer (`1.0.0`). Public deps install via **`glb-npm-vir`**; internal packages publish to **`glb-npm-loc`** on `centraluhg.jfrog.io`.
-
-### Setup
-
-1. Copy `env/npm.jfrog.env.example` → `env/npm.jfrog.env` and set a real **identity token**.
-2. Load the token (host/repos are already in `.npmrc`):
+- Virtual repo: `glb-npm-vir` on `centraluhg.jfrog.io`
+- Local scope `@uhg-haas`: `glb-npm-loc`
+- Set `JFROG_NPM_TOKEN` before install (see `env/npm.jfrog.env.example`)
 
 ```powershell
 . .\scripts\load-jfrog-env.ps1
 npm config get registry
-# → https://centraluhg.jfrog.io/artifactory/api/npm/glb-npm-vir/
-
-# Clean install (stale lockfiles with @app/* or workspace:* will break npm)
-Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
-Remove-Item package-lock.json -ErrorAction SilentlyContinue
 npm install
 ```
 
-If you see `ENOTFOUND` for a URL containing `${JFROG_...}` or `$%7BJFROG_...%7D`, the project `.npmrc` is outdated — pull the latest (host is hardcoded) and retry.
-
-If you see `Unsupported URL Type "workspace:"`, delete `package-lock.json` + `node_modules` and run `npm install` from the **repo root** (services use SemVer `1.0.0`, linked via workspaces).
-
-### JFrog CoolNPM / DelayNPM (403 on install)
-
-If you see `blocked by jfrog packages curation service` / `Package version is 3 days old`:
-
-- This is **not** an auth failure — UHG policy blocks immature npm versions.
-- Root `package.json` uses **`overrides`** and exact pins (`typeorm@0.3.20`, older `@azure/*`) to stay within policy.
-- If a package is still blocked, pick an older version in [JFrog Curation](https://curationuhg.jfrog.io) and add it to `overrides`.
-
-### Versioning & publish
-
-All workspace packages stay on the **same version** (JFrog consumers expect exact SemVer, not `workspace:*`):
+CoolNPM/DelayNPM 403s mean the package version is too new — pin an older version or use `overrides` (see root `package.json`).
 
 ```bash
-npm run version:bump:patch   # 1.0.0 → 1.0.1 across root + workspaces
-npm run publish:shared       # publishes @uhg-haas/shared to glb-npm-loc
+npm run version:bump:patch
+npm run publish:shared
 ```
 
-Docker:
-
-```bash
-docker build --build-arg SERVICE=auth-service --build-arg JFROG_NPM_TOKEN=$env:JFROG_NPM_TOKEN -t auth-service .
-```
-
-## Documentation
+## Docs
 
 | Doc | Contents |
 |-----|----------|
-| [docs/WORKFLOW-AND-DB-FIRST.md](docs/WORKFLOW-AND-DB-FIRST.md) | Architecture workflow + **DB-first** how-to (create tables in SQL, map/link entities in Node) |
-| [db/README.md](db/README.md) | SQL script layout for schema changes |
+| [docs/WORKFLOW-AND-DB-FIRST.md](docs/WORKFLOW-AND-DB-FIRST.md) | Workflow + DB-first mapping |
+| [db/README.md](db/README.md) | SQL scripts |
+| [docs/JFROG-REACT-FRONTEND-PROMPT.md](docs/JFROG-REACT-FRONTEND-PROMPT.md) | JFrog setup for React |
 
-## API documentation
+## API
 
-Interactive Swagger UI (OpenAPI 3) is served from the gateway:
+Swagger: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
 
-- UI: [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
-- Spec: [http://localhost:3000/api/docs/openapi.json](http://localhost:3000/api/docs/openapi.json)
+| Method | Path | Auth |
+|--------|------|------|
+| POST | `/api/v1/auth/register` | — |
+| POST | `/api/v1/auth/login` | — |
+| POST | `/api/v1/auth/refresh` | — |
+| POST | `/api/v1/auth/logout` | — |
+| GET | `/api/v1/auth/me` | Bearer |
+| POST | `/api/v1/auth/change-password` | Bearer |
 
-Use **Authorize** in Swagger with the `accessToken` from login/register to try protected routes.
+## Production
 
-## Auth API (`/api/v1/auth`)
-
-| Method | Path | Auth | Notes |
-|--------|------|------|-------|
-| POST | `/register` | — | Always creates `USER` |
-| POST | `/login` | — | Returns access + refresh tokens |
-| POST | `/refresh` | — | Rotates refresh; reuse revokes all |
-| POST | `/logout` | — | Revokes refresh token |
-| GET | `/me` | Bearer | Current user |
-| POST | `/change-password` | Bearer | Revokes all refresh tokens |
-
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"a@b.com\",\"password\":\"Str0ng!Pass\"}"
-```
-
-## Production notes
-
-1. `TYPEORM_SYNC=false` in prod; introduce migrations when the schema stabilizes.
-2. Put `JWT_SECRET` and SQL creds in Key Vault / App Settings — not in git.
-3. `AZURE_SQL_ENCRYPT=true`; prefer private endpoint over wide firewall rules.
-4. Front the gateway with Front Door / App Gateway + WAF when public.
+1. `TYPEORM_SYNC=false`; use SQL scripts / migrations.
+2. Store secrets in Key Vault / App Settings.
+3. Keep `AZURE_SQL_ENCRYPT=true`.

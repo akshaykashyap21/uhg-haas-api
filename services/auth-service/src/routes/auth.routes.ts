@@ -1,7 +1,6 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router } from 'express';
 import { authenticate, createRateLimiter, JwtService, validate } from '@uhg-haas/shared';
 import { env } from '../config/env';
-import { logger } from '../config/logger';
 import { AppDataSource } from '../config/data-source';
 import { AuthController } from '../controllers/AuthController';
 import {
@@ -23,24 +22,6 @@ const jwtService = new JwtService({
 
 const authLimiter = createRateLimiter(15 * 60 * 1000, 20);
 
-/** Logs as soon as a request hits /api/v1/auth/* (before validation). */
-function traceAuthRoute(req: Request, _res: Response, next: NextFunction): void {
-  logger.info('Auth API route reached', {
-    stage: 'route',
-    correlationId: req.correlationId,
-    method: req.method,
-    originalUrl: req.originalUrl,
-    mountPath: req.baseUrl,
-    routePath: req.path,
-    hasBody: Boolean(req.body && Object.keys(req.body).length),
-    bodyKeys: req.body && typeof req.body === 'object' ? Object.keys(req.body) : [],
-  });
-  next();
-}
-
-router.use(traceAuthRoute);
-
-/** Liveness under the proxied prefix (gateway-friendly). */
 router.get('/health', (_req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -48,7 +29,6 @@ router.get('/health', (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
 
 router.get('/ready', async (_req, res) => {
   let db = false;
@@ -65,14 +45,6 @@ router.get('/ready', async (_req, res) => {
     status: db ? 'ready' : 'not_ready',
     checks: { database: db ? 'up' : 'down' },
     service: env.SERVICE_NAME,
-  });
-});
-
-router.get(['/ping', '/__ping', '/_ping'], (_req, res) => {
-  res.status(200).json({
-    ok: true,
-    service: 'auth-service',
-    path: '/api/v1/auth/ping',
   });
 });
 

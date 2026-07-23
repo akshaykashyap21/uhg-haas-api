@@ -2,9 +2,7 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { SqlEnv } from './env';
 
 /**
- * TypeORM's mssql driver loads `tedious` by default, which cannot do Windows
- * Integrated Auth (results in "Login failed for user ''."). Patch it to use
- * `mssql/msnodesqlv8` when Windows auth is enabled.
+ * When Windows auth is enabled, TypeORM must use msnodesqlv8 (tedious cannot).
  */
 function enableWindowsAuthSqlDriver(): void {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -44,7 +42,6 @@ function buildWindowsAuthConnectionString(env: SqlEnv, host: string, instanceNam
   const server = instanceName ? `${host}\\${instanceName}` : `${host},${env.AZURE_SQL_PORT}`;
   const trust = env.AZURE_SQL_TRUST_SERVER_CERTIFICATE ? 'yes' : 'no';
   const encrypt = env.AZURE_SQL_ENCRYPT ? 'yes' : 'no';
-  // Prefer ODBC 17 — widely installed; Native Client 11.0 is often missing on new Windows.
   return [
     'Driver={ODBC Driver 17 for SQL Server}',
     `Server=${server}`,

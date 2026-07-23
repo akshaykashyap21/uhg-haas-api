@@ -4,8 +4,7 @@ export const openApiDocument = {
   info: {
     title: 'UHG Azure Express API',
     version: '1.0.0',
-    description:
-      'Public API via the API Gateway. Use **Authorize** with the access token from login/register.',
+    description: 'API gateway. Authorize with the access token from login or register.',
   },
   servers: [{ url: 'http://localhost:3000', description: 'Local gateway' }],
   tags: [
@@ -186,9 +185,7 @@ export const openApiDocument = {
     '/ready': {
       get: {
         tags: ['Health'],
-        summary: 'Gateway readiness (checks auth upstream)',
-        description:
-          'Probes auth at /api/v1/auth/ready (then /ready, then /health). Returns 503 if auth DB is down.',
+        summary: 'Gateway readiness',
         responses: {
           '200': { description: 'Ready' },
           '503': { description: 'Upstream not ready' },
@@ -198,46 +195,17 @@ export const openApiDocument = {
     '/api/v1/auth/ready': {
       get: {
         tags: ['Auth'],
-        summary: 'Auth service readiness (DB check)',
-        description: 'Proxied to auth-service. Verifies SQL connectivity.',
+        summary: 'Auth readiness',
         responses: {
           '200': { description: 'Auth + DB ready' },
           '503': { description: 'Database down' },
         },
       },
     },
-    '/api/v1/auth/ping': {
-      get: {
-        tags: ['Auth'],
-        summary: 'Auth service ping',
-        description:
-          'Proxied to auth-service. Use this to verify gateway → auth routing (no auth required).',
-        responses: {
-          '200': {
-            description: 'Auth service reachable',
-            content: {
-              'application/json': {
-                schema: {
-                  type: 'object',
-                  properties: {
-                    ok: { type: 'boolean', example: true },
-                    service: { type: 'string', example: 'auth-service' },
-                    path: { type: 'string', example: '/api/v1/auth/ping' },
-                  },
-                },
-              },
-            },
-          },
-          '404': { description: 'Auth route not found / upstream mismatch' },
-          '502': { description: 'Auth service unavailable' },
-        },
-      },
-    },
     '/api/v1/auth/register': {
       post: {
         tags: ['Auth'],
-        summary: 'Register a new user',
-        description: 'Always creates role `USER`. Returns user + token pair.',
+        summary: 'Register',
         requestBody: {
           required: true,
           content: {

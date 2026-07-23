@@ -24,41 +24,10 @@ export function createApp() {
   app.use(corsMiddleware(env.CORS_ORIGIN));
   app.use(express.json({ limit: '1mb' }));
   app.use(correlationIdMiddleware);
-
-  // Identify this process as auth-service (gateway readiness detects impostors on :3002)
-  app.use((_req, res, next) => {
-    res.setHeader('X-Service-Name', 'auth-service');
-    next();
-  });
-
-  // Visible even if winston is misconfigured — proves the request hit Express
-  app.use((req, _res, next) => {
-    // eslint-disable-next-line no-console
-    console.log(`[auth-trace] ${req.method} ${req.originalUrl} (url=${req.url}) cid=${req.correlationId}`);
-    logger.info('Auth inbound', {
-      stage: 'inbound',
-      correlationId: req.correlationId,
-      method: req.method,
-      originalUrl: req.originalUrl,
-      url: req.url,
-    });
-    next();
-  });
-
   app.use(requestLogger(logger));
   app.use(createRateLimiter(env.RATE_LIMIT_WINDOW_MS, env.RATE_LIMIT_MAX));
 
   app.use(healthRoutes);
-
-  app.get('/ping', (_req, res) => {
-    res.status(200).json({
-      ok: true,
-      service: env.SERVICE_NAME,
-      authBase: '/api/v1/auth',
-      tips: ['GET /health', 'GET /ping', 'GET /api/v1/auth/ping', 'GET /api/v1/auth/ready', 'POST /api/v1/auth/register'],
-    });
-  });
-
   app.use('/api/v1/auth', authRoutes);
 
   app.use(notFoundHandler);

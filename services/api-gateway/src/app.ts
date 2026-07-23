@@ -33,9 +33,6 @@ export function createApp() {
 
   app.use(healthRoutes);
   app.use('/api/docs', docsRoutes);
-
-  // Do not parse JSON here — body must stream through to upstream services.
-  // Mount at "/" with pathFilter so Express does not strip /api/v1/auth.
   app.use(createServiceProxy(env.AUTH_SERVICE_URL, '/api/v1/auth', logger));
 
   app.use(notFoundHandler);
