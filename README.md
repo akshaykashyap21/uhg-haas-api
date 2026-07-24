@@ -74,6 +74,7 @@ npm run publish:shared
 
 | Doc | Contents |
 |-----|----------|
+| [docs/SETUP.md](docs/SETUP.md) | **Full setup with JFrog + run steps** |
 | [docs/WORKFLOW-AND-DB-FIRST.md](docs/WORKFLOW-AND-DB-FIRST.md) | Workflow + DB-first mapping |
 | [db/README.md](db/README.md) | SQL scripts |
 | [docs/JFROG-REACT-FRONTEND-PROMPT.md](docs/JFROG-REACT-FRONTEND-PROMPT.md) | JFrog setup for React |
